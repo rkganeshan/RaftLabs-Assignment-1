@@ -123,6 +123,11 @@ const UserPlayground=()=>{
     const [selectedSecondPerson,setSelectedSecondPerson]=useState("");
     const [selectedPeople,setSelectedPeople]=useState([]);
     const [output,setOutput]=useState([]);
+    const showFirstLastNameMissing = () => {
+        toast.error('First Name and Last Name Missing!', {
+            position: toast.POSITION.TOP_RIGHT
+        });
+    };
     const showLastNameMissing = () => {
         toast.error('Last Name Missing', {
             position: toast.POSITION.TOP_RIGHT
@@ -146,29 +151,36 @@ const UserPlayground=()=>{
     const addPerson=()=>{
         // e.preventDefault();
         // e.target.reset();
-        if(firstName && lastName=="")
+        if(firstName=="" && lastName=="")
+        {
+            showFirstLastNameMissing();
+        }
+        else if(firstName && lastName=="")
         {
             showLastNameMissing();
         }
-        if(firstName=="" && lastName)
+        else if(firstName=="" && lastName)
         {
             showFirstNameMissing();
         }
-        let fullName=firstName.trim()+" "+lastName.trim();
-        let search=peopleList.find((item)=>item==fullName);
-        if(search)
-        {
-            // alert("A person with same Full Name already exists.Add another person.")
-            duplicateFullName();
-            setFirstName("");
-            setLastName("");
-        }
         else
         {
-            setPeopleList((prev) => [...prev, fullName]);
-            setFirstName("");
-            setLastName("");
-            successFullName();
+            let fullName=firstName.trim()+" "+lastName.trim();
+            let search=peopleList.find((item)=>item==fullName);
+            if(search)
+            {
+                // alert("A person with same Full Name already exists.Add another person.")
+                duplicateFullName();
+                setFirstName("");
+                setLastName("");
+            }
+            else
+            {
+                setPeopleList((prev) => [...prev, fullName]);
+                setFirstName("");
+                setLastName("");
+                successFullName();
+            }
         }
     }
     const showSecondPersonMissing = () => {
@@ -194,6 +206,16 @@ const UserPlayground=()=>{
     }
     const friendshipNotExists=()=>{
         toast.error(`${selectedPeople[0]} and ${selectedPeople[1]} are not connected directly or mutually.`, {
+            position: toast.POSITION.TOP_RIGHT
+        });
+    }
+    const friendshipOnlyOneSelected=()=>{
+        toast.error(`${selectedPeople[0]} alone is selected. You must select two people to find out the degree.`, {
+            position: toast.POSITION.TOP_RIGHT
+        });
+    }
+    const friendshipNoneSelected=()=>{
+        toast.error(`None selected. You must select two people to find out the degree.`, {
             position: toast.POSITION.TOP_RIGHT
         });
     }
@@ -240,25 +262,36 @@ const UserPlayground=()=>{
         // };
         e.preventDefault();
         g.allPaths(selectedPeople[0],selectedPeople[1],{},[]);
-        console.log(outputObj.outputList);
-        if(outputObj.outputList.length==0)
+        if(selectedPeople.length==1)
         {
-            friendshipNotExists();
-            // tOut();
-            const myTimeout = setTimeout(tOut, 6000);
+            friendshipOnlyOneSelected()
         }
-        for(let j=0;j<outputObj.outputList.length;j++)
+        else if(selectedPeople.length==0)
         {
-            outputObj.outputList[j]=outputObj.outputList[j].split(",").join(">");
-            outputObj.outputList[j]=selectedPeople[0]+">"+outputObj.outputList[j];
+            friendshipNoneSelected();
         }
-        if(outputObj.outputList.length!=0)
+        else
         {
-            scrollDownOnSuccess();
-            const myTimeout = setTimeout(tOut, 6000);
+            console.log(outputObj.outputList);
+            if(outputObj.outputList.length==0)
+            {
+                friendshipNotExists();
+                // tOut();
+                const myTimeout = setTimeout(tOut, 6000);
+            }
+            for(let j=0;j<outputObj.outputList.length;j++)
+            {
+                outputObj.outputList[j]=outputObj.outputList[j].split(",").join(">");
+                outputObj.outputList[j]=selectedPeople[0]+">"+outputObj.outputList[j];
+            }
+            if(outputObj.outputList.length!=0)
+            {
+                scrollDownOnSuccess();
+                const myTimeout = setTimeout(tOut, 6000);
+            }
+            setOutput(outputObj.outputList.join("\n"));
+            outputObj.outputList=[];
         }
-        setOutput(outputObj.outputList.join("\n"));
-        outputObj.outputList=[];
     }
     useEffect(()=>{
         for (let i = 0; i < peopleList.length; i++) {
